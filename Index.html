@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tableau des fibres optiques Swisscom</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data:;">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background-color: #121212; 
+            color: white; 
+        }
+        select, input, table { 
+            margin: 10px 0; 
+            color: white; 
+            background-color: #333; 
+            border: 1px solid #555; 
+            padding: 5px; 
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            max-width: 600px; 
+        }
+        th, td { 
+            border: 1px solid #555; 
+            padding: 8px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #1e1e1e; 
+        }
+        .color-box {
+            width: 50px;
+            height: 20px;
+            border: 2px solid;
+            margin: 0 auto;
+        }
+        .striated {
+            background: repeating-linear-gradient(45deg, white, white 5px, transparent 5px, transparent 10px);
+            border: 3px solid black;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        @media (max-width: 600px) {
+            table {
+                font-size: 12px;
+            }
+            .color-box {
+                width: 30px;
+                height: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Tableau des fibres optiques Swisscom</h1>
+    <label for="cableType">Choisissez le type de câble fibre optique :</label>
+    <select id="cableType" onchange="generateTable()">
+        <option value="12">12Fs</option>
+        <option value="24">24Fs</option>
+        <option value="48">48Fs</option>
+        <option value="72">72Fs</option>
+        <option value="96">96Fs</option>
+        <option value="144">144Fs</option>
+        <option value="288">288Fs</option>
+        <option value="432">432Fs</option>
+    </select>
+    <br>
+    <label for="tubeType">Type de tube :</label>
+    <select id="tubeType" onchange="generateTable()">
+        <option value="12">Tube à 12 fibres</option>
+        <option value="24">Tube à 24 fibres</option>
+    </select>
+    <br>
+    <label for="fiberNumber">Entrez le numéro de la fibre :</label>
+    <input type="number" id="fiberNumber" placeholder="Numéro de la fibre" onchange="findFiber()">
+    <p id="fiberInfo"></p>
+
+    <table id="fiberTable">
+        <thead>
+            <tr>
+                <th>Numéro de Tube</th>
+                <th>Numéro de Fibre</th>
+                <th>Couleur (Standard Swisscom)</th>
+                <th>Affichage Couleur</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const colorsSwisscom = [
+            { name: "Rouge", hex: "#FF0000" },
+            { name: "Vert", hex: "#008000" },
+            { name: "Jaune", hex: "#FFFF00" },
+            { name: "Bleu", hex: "#0000FF" },
+            { name: "Blanc", hex: "#FFFFFF" },
+            { name: "Violet", hex: "#800080" },
+            { name: "Orange", hex: "#FFA500" },
+            { name: "Noir", hex: "#000000" },
+            { name: "Gris", hex: "#808080" },
+            { name: "Brun", hex: "#8B4513" },
+            { name: "Rose", hex: "#FFC0CB" },
+            { name: "Turquoise", hex: "#40E0D0" }
+        ];
+
+        function generateTable() {
+            const fiberCount = parseInt(document.getElementById('cableType').value);
+            const tubeType = parseInt(document.getElementById('tubeType').value);
+            const tbody = document.querySelector('#fiberTable tbody');
+            tbody.innerHTML = '';
+
+            for (let i = 1; i <= fiberCount; i++) {
+                let colorIndex = (i - 1) % colorsSwisscom.length;
+                let baseColor = colorsSwisscom[colorIndex].name;
+                let colorHex = colorsSwisscom[colorIndex].hex;
+                let displayColor = baseColor; 
+                let classStr = "";
+                let tubeNumber = Math.ceil(i / tubeType);
+
+                if (tubeType === 24) {
+                    let posInTube = i % tubeType;
+                    if (posInTube === 0) posInTube = tubeType;
+                    if (posInTube > 12) {
+                        displayColor += " (strié)";
+                        classStr = "striated";
+                    }
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td>${tubeNumber}</td>
+                    <td>${i}</td>
+                    <td>${displayColor}</td>
+                    <td><div class="color-box ${classStr}" style="background-color: ${colorHex}; border-color: ${colorHex === '#FFFFFF' ? '#000' : '#FFF'}"></div></td>
+                </tr>`;
+            }
+        }
+
+        function findFiber() {
+            const fiberNumber = parseInt(document.getElementById('fiberNumber').value);
+            const tubeType = parseInt(document.getElementById('tubeType').value);
+            let posInTube = fiberNumber % tubeType;
+            if (posInTube === 0) posInTube = tubeType;
+            const tubeNumber = Math.ceil(fiberNumber / tubeType);
+            let colorIndex = (fiberNumber - 1) % colorsSwisscom.length;
+            let baseColor = colorsSwisscom[colorIndex].name;
+            let displayColor = baseColor;
+            if (tubeType === 24 && posInTube > 12) {
+                displayColor += " (strié)";
+            }
+            document.getElementById('fiberInfo').innerText =
+                `Fibre ${fiberNumber} se trouve dans le tube ${tubeNumber} avec la couleur ${displayColor}`;
+        }
+
+        window.onload = generateTable;
+    </script>
+</body>
+</html>
